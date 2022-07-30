@@ -1,0 +1,10 @@
+Usage: clockify-tool export [-hV] [--force] -f=<from> [-t=<to>]
+                            [-w=<workingFolder>]
+Export data from the clockify backend
+  -f, --from=<from>   From week (Example value: '2022-23')
+      --force         Download the file, even if it already exist
+  -h, --help          Show this help message and exit.
+  -t, --to=<to>       To week (Example value: '2022-24')
+  -V, --version       Print version information and exit.
+  -w, --working-folder=<workingFolder>
+                      Path to the working folder
