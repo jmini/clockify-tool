@@ -65,7 +65,7 @@ class Export implements Runnable {
         Path configFile = CliUtil.configFile(createException, root);
         Properties config = CliUtil.configProperties(configFile);
         if (!config.containsKey(CliUtil.CONFIG_API_KEY)) {
-            throw createException.apply(String.format("Entry '%s' is missing in the '%x' file", CliUtil.CONFIG_API_KEY, configFile));
+            throw createException.apply(String.format("Entry '%s' is missing in the '%s' file", CliUtil.CONFIG_API_KEY, configFile));
         }
 
         DateProvider dateProvider = LocalDate::now;
