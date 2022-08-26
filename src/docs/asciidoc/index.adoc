@@ -35,6 +35,8 @@ include::../../test/resources/main-help-output.txt[]
 apiKey=N90Da43Z3bdGU3f3Wdb4cL7fc312cYTec55KaeMba9Q0f42a
 ----
 
+* `apiKey` is the API Key to connect to Clockify
+
 === Export command
 
 [source, xml]
