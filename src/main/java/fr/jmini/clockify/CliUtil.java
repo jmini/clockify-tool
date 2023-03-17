@@ -43,7 +43,7 @@ public class CliUtil {
 
     public static Path configFile(Function<String, RuntimeException> exceptionCreator, Path root) {
         Path configFile = root.resolve("config.properties");
-        if (!Files.isReadable(root)) {
+        if (!Files.isRegularFile(configFile)) {
             throw exceptionCreator.apply(String.format("Configuration file '%s' does not exist", configFile.toAbsolutePath()));
         }
         return configFile;
