@@ -27,7 +27,7 @@ public class TimeEntry {
     private String description;
 
     @JsonProperty("tagIds")
-    private String tagIds;
+    private List<String> tagIds;
 
     @JsonProperty("userId")
     private String userId;
@@ -69,11 +69,11 @@ public class TimeEntry {
         this.description = description;
     }
 
-    public String getTagIds() {
+    public List<String> getTagIds() {
         return tagIds;
     }
 
-    public void setTagIds(String tagIds) {
+    public void setTagIds(List<String> tagIds) {
         this.tagIds = tagIds;
     }
 
