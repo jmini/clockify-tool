@@ -9,11 +9,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.function.Function;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import fr.jmini.clockify.model.Tag;
 import fr.jmini.clockify.model.User;
 import picocli.CommandLine.Command;
@@ -27,8 +22,6 @@ class ExportTags implements Runnable {
     private static final String TAGS_FILE = "tags.json";
 
     private static final Locale LOCALE = Locale.FRANCE;
-
-    private static final ObjectMapper MAPPER = createMapper();
 
     @Spec
     private CommandSpec spec;
@@ -74,7 +67,7 @@ class ExportTags implements Runnable {
         Path file = data.resolve(TAGS_FILE);
         if (replaceExisting || !Files.exists(file)) {
             List<Tag> entries = client.getTags(workspaceId, userId);
-            Files.writeString(file, MAPPER.writeValueAsString(entries));
+            Files.writeString(file, JSON.toJson(entries));
         }
     }
 
@@ -87,13 +80,4 @@ class ExportTags implements Runnable {
         }
         return List.of();
     }
-
-    private static ObjectMapper createMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        mapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
-        mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-        return mapper;
-    }
-
 }

@@ -36,8 +36,6 @@ class Export implements Runnable {
 
     private static final Locale LOCALE = Locale.FRANCE;
 
-    private static final ObjectMapper MAPPER = createMapper();
-
     @Spec
     private CommandSpec spec;
 
@@ -151,7 +149,7 @@ class Export implements Runnable {
             String fromValue = convertDatetime(h);
             String toValue = convertDatetime(h.next());
             List<TimeEntry> entries = client.getTimeEntries(workspaceId, userId, fromValue, toValue);
-            Files.writeString(file, MAPPER.writeValueAsString(entries));
+            Files.writeString(file, JSON.toJson(entries));
             return entries;
         }
         return readFromFile(root, h);

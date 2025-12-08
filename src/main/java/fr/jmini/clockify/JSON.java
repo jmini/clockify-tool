@@ -22,6 +22,10 @@ public class JSON {
         return mapper;
     }
 
+    public static String toJson(Object object) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(object);
+    }
+
     public static User deserializeUser(String content) {
         try {
             return objectMapper.readValue(content, User.class);
