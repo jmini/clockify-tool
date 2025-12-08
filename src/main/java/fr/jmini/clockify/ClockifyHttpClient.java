@@ -9,28 +9,16 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import fr.jmini.clockify.model.Tag;
 import fr.jmini.clockify.model.TimeEntry;
 import fr.jmini.clockify.model.User;
 
 public class ClockifyHttpClient implements ClockifyClient {
 
     private String apiKey;
-    private ObjectMapper objectMapper;
 
     public ClockifyHttpClient(String apiKey) {
         this.apiKey = apiKey;
-        this.objectMapper = createMapper();
-    }
-
-    private ObjectMapper createMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper;
     }
 
     @Override
@@ -46,7 +34,8 @@ public class ClockifyHttpClient implements ClockifyClient {
                     .followRedirects(HttpClient.Redirect.ALWAYS)
                     .build()
                     .send(request, BodyHandlers.ofString());
-            return objectMapper.readValue(response.body(), User.class);
+            String content = response.body();
+            return JSON.deserializeUser(content);
         } catch (URISyntaxException | IOException e) {
             throw new IllegalStateException("Could not get the user", e);
         } catch (InterruptedException e) {
@@ -69,8 +58,32 @@ public class ClockifyHttpClient implements ClockifyClient {
                     .followRedirects(HttpClient.Redirect.ALWAYS)
                     .build()
                     .send(request, BodyHandlers.ofString());
-            return objectMapper.readValue(response.body(), objectMapper.getTypeFactory()
-                    .constructCollectionLikeType(List.class, TimeEntry.class));
+            String content = response.body();
+            return JSON.deserializeTimeEntries(content);
+        } catch (URISyntaxException | IOException e) {
+            throw new IllegalStateException("Could not get time entries", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread()
+                    .interrupt();
+            throw new IllegalStateException("Could not get time entries", e);
+        }
+    }
+
+    @Override
+    public List<Tag> getTags(String workspaceId, String userId) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("https://api.clockify.me/api/v1/workspaces/" + workspaceId + "/tags?page-size=5000"))
+                    .headers("X-Api-Key", apiKey)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.ALWAYS)
+                    .build()
+                    .send(request, BodyHandlers.ofString());
+            String content = response.body();
+            return JSON.deserializeTags(content);
         } catch (URISyntaxException | IOException e) {
             throw new IllegalStateException("Could not get time entries", e);
         } catch (InterruptedException e) {

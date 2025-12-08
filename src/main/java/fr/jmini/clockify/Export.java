@@ -13,13 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import fr.jmini.clockify.model.Tag;
 import fr.jmini.clockify.model.TimeEntry;
 import fr.jmini.clockify.model.User;
 import fr.jmini.clockify.model.WeekHolder;
@@ -85,8 +88,27 @@ class Export implements Runnable {
         List<WeekHolder> list = calculateFromTo(exceptionCreator, fromWeek, toWeek);
 
         User user = client.getCurrentUser();
+        List<TimeEntry> allEntries = new ArrayList<>();
         for (WeekHolder h : list) {
-            exportWeek(client, root, h, user.getActiveWorkspace(), user.getId(), replaceExisting);
+            List<TimeEntry> entries = exportWeek(client, root, h, user.getActiveWorkspace(), user.getId(), replaceExisting);
+            allEntries.addAll(entries);
+        }
+        if (replaceExisting) {
+            ExportTags.exportTags(client, root, user.getActiveWorkspace(), user.getId(), replaceExisting);
+        } else {
+            List<String> existingTagIds = ExportTags.readFromFile(root)
+                    .stream()
+                    .map(Tag::getId)
+                    .collect(Collectors.toList());
+            Set<String> tags = allEntries.stream()
+                    .flatMap(e -> e.getTagIds()
+                            .stream())
+                    .collect(Collectors.toSet());
+            boolean tagsAreKnown = tags.stream()
+                    .allMatch(id -> existingTagIds.contains(id));
+            if (!tagsAreKnown) {
+                ExportTags.exportTags(client, root, user.getActiveWorkspace(), user.getId(), true);
+            }
         }
     }
 
@@ -121,7 +143,7 @@ class Export implements Runnable {
         return result;
     }
 
-    static void exportWeek(ClockifyClient client, Path root, WeekHolder h, String workspaceId, String userId, boolean replaceExisting) throws IOException {
+    static List<TimeEntry> exportWeek(ClockifyClient client, Path root, WeekHolder h, String workspaceId, String userId, boolean replaceExisting) throws IOException {
         Path data = CliUtil.dataFolder(root);
         Files.createDirectories(data);
         Path file = data.resolve(h.getName() + ".json");
@@ -130,7 +152,20 @@ class Export implements Runnable {
             String toValue = convertDatetime(h.next());
             List<TimeEntry> entries = client.getTimeEntries(workspaceId, userId, fromValue, toValue);
             Files.writeString(file, MAPPER.writeValueAsString(entries));
+            return entries;
         }
+        return readFromFile(root, h);
+    }
+
+    static List<TimeEntry> readFromFile(Path root, WeekHolder h) throws IOException {
+        Path data = CliUtil.dataFolder(root);
+        Files.createDirectories(data);
+        Path file = data.resolve(h.getName() + ".json");
+        if (Files.exists(file)) {
+            String content = Files.readString(file);
+            return JSON.deserializeTimeEntries(content);
+        }
+        return List.of();
     }
 
     static String convertDatetime(WeekHolder h) {

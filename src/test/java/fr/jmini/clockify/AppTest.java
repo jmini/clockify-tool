@@ -29,6 +29,11 @@ class AppTest {
         runTest("export-help-output.txt", "export", "--help");
     }
 
+    @Test
+    void exportTagsOutput() throws Exception {
+        runTest("export-tags-help-output.txt", "export-tags", "--help");
+    }
+
     private void runTest(String name, String... args) throws IOException {
         StringWriter sw = new StringWriter();
         CommandLine cmd = new CommandLine(new App());
@@ -38,9 +43,11 @@ class AppTest {
                 .as("exit code")
                 .isZero();
         InputStream inputStream = AppTest.class.getResourceAsStream("/" + name);
-        String expectedOutput = new BufferedReader(new InputStreamReader(inputStream))
-                .lines()
-                .collect(Collectors.joining("\n")) + "\n";
+        String expectedOutput;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            expectedOutput = reader.lines()
+                    .collect(Collectors.joining("\n")) + "\n";
+        }
         Path path = Paths.get("src/test/resources/" + name);
         Files.write(path, sw.toString()
                 .getBytes(StandardCharsets.UTF_8));

@@ -1,0 +1,7 @@
+Usage: clockify-tool export-tags [-hV] [--force] [-w=<workingFolder>]
+Export tags data from the clockify backend
+      --force     Download the file, even if it already exist
+  -h, --help      Show this help message and exit.
+  -V, --version   Print version information and exit.
+  -w, --working-folder=<workingFolder>
+                  Path to the working folder
