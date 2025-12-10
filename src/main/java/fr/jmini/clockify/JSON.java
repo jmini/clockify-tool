@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.jmini.clockify.model.Project;
 import fr.jmini.clockify.model.Tag;
 import fr.jmini.clockify.model.TimeEntry;
 import fr.jmini.clockify.model.User;
@@ -23,7 +24,8 @@ public class JSON {
     }
 
     public static String toJson(Object object) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(object);
+        return objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(object);
     }
 
     public static User deserializeUser(String content) {
@@ -43,15 +45,25 @@ public class JSON {
         }
     }
 
+    public static List<Project> deserializeProjects(String content) {
+        try {
+            return objectMapper.readValue(content, objectMapper.getTypeFactory()
+                    .constructCollectionLikeType(List.class, Project.class));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Can not deserialize Projects", e);
+        }
+    }
+
     public static List<Tag> deserializeTags(String content) {
         try {
             return objectMapper.readValue(content, objectMapper.getTypeFactory()
                     .constructCollectionLikeType(List.class, Tag.class));
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Can not deserialize Tag", e);
+            throw new IllegalArgumentException("Can not deserialize Tags", e);
         }
     }
 
     private JSON() {
     }
+
 }

@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 
+import fr.jmini.clockify.model.Project;
 import fr.jmini.clockify.model.Tag;
 import fr.jmini.clockify.model.TimeEntry;
 import fr.jmini.clockify.model.User;
@@ -70,6 +71,30 @@ public class ClockifyHttpClient implements ClockifyClient {
     }
 
     @Override
+    public List<Project> getProjects(String workspaceId, String userId) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("https://api.clockify.me/api/v1/workspaces/" + workspaceId + "/projects?page-size=5000"))
+                    .headers("X-Api-Key", apiKey)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.ALWAYS)
+                    .build()
+                    .send(request, BodyHandlers.ofString());
+            String content = response.body();
+            return JSON.deserializeProjects(content);
+        } catch (URISyntaxException | IOException e) {
+            throw new IllegalStateException("Could not get projects", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread()
+                    .interrupt();
+            throw new IllegalStateException("Could not get projects", e);
+        }
+    }
+
+    @Override
     public List<Tag> getTags(String workspaceId, String userId) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -85,11 +110,11 @@ public class ClockifyHttpClient implements ClockifyClient {
             String content = response.body();
             return JSON.deserializeTags(content);
         } catch (URISyntaxException | IOException e) {
-            throw new IllegalStateException("Could not get time entries", e);
+            throw new IllegalStateException("Could not get tags", e);
         } catch (InterruptedException e) {
             Thread.currentThread()
                     .interrupt();
-            throw new IllegalStateException("Could not get time entries", e);
+            throw new IllegalStateException("Could not get tags", e);
         }
     }
 }

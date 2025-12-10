@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import fr.jmini.clockify.model.Project;
 import fr.jmini.clockify.model.Tag;
 import fr.jmini.clockify.model.TimeEntry;
 import fr.jmini.clockify.model.User;
@@ -93,6 +94,7 @@ class Export implements Runnable {
         }
         if (replaceExisting) {
             ExportTags.exportTags(client, root, user.getActiveWorkspace(), user.getId(), replaceExisting);
+            ExportProjects.exportProjects(client, root, user.getActiveWorkspace(), user.getId(), replaceExisting);
         } else {
             List<String> existingTagIds = ExportTags.readFromFile(root)
                     .stream()
@@ -107,6 +109,20 @@ class Export implements Runnable {
             if (!tagsAreKnown) {
                 ExportTags.exportTags(client, root, user.getActiveWorkspace(), user.getId(), true);
             }
+
+            List<String> existingProjectIds = ExportProjects.readFromFile(root)
+                    .stream()
+                    .map(Project::getId)
+                    .collect(Collectors.toList());
+            Set<String> projects = allEntries.stream()
+                    .map(e -> e.getProjectId())
+                    .collect(Collectors.toSet());
+            boolean projectsAreKnown = projects.stream()
+                    .allMatch(id -> existingProjectIds.contains(id));
+            if (!projectsAreKnown) {
+                ExportProjects.exportProjects(client, root, user.getActiveWorkspace(), user.getId(), true);
+            }
+
         }
     }
 

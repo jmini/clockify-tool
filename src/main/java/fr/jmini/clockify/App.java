@@ -5,6 +5,7 @@ import picocli.CommandLine.Command;
 
 @Command(name = App.APPLICATION_NAME, mixinStandardHelpOptions = true, versionProvider = fr.jmini.clockify.PropertiesVersionProvider.class, subcommands = {
         Export.class,
+        ExportProjects.class,
         ExportTags.class,
 })
 public class App {

@@ -30,6 +30,11 @@ class AppTest {
     }
 
     @Test
+    void exportProjectsOutput() throws Exception {
+        runTest("export-projects-help-output.txt", "export-projects", "--help");
+    }
+
+    @Test
     void exportTagsOutput() throws Exception {
         runTest("export-tags-help-output.txt", "export-tags", "--help");
     }
@@ -44,9 +49,13 @@ class AppTest {
                 .isZero();
         InputStream inputStream = AppTest.class.getResourceAsStream("/" + name);
         String expectedOutput;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            expectedOutput = reader.lines()
-                    .collect(Collectors.joining("\n")) + "\n";
+        if (inputStream == null) {
+            expectedOutput = "!! content missing, becasue file not found!";
+        } else {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                expectedOutput = reader.lines()
+                        .collect(Collectors.joining("\n")) + "\n";
+            }
         }
         Path path = Paths.get("src/test/resources/" + name);
         Files.write(path, sw.toString()
